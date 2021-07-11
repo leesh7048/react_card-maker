@@ -7,8 +7,8 @@ import Preview from "../preview/preview";
 import styles from "./maker.module.css";
 
 const Maker = ({ authService }) => {
-  const [cards, setCards] = useState([
-    {
+  const [cards, setCards] = useState({
+    1: {
       id: "1",
       name: "Lee",
       theme: "light",
@@ -18,7 +18,7 @@ const Maker = ({ authService }) => {
       fileName: "Lee",
       fileURL: null,
     },
-    {
+    2: {
       id: "2",
       name: "Lee2",
       theme: "dark",
@@ -28,7 +28,7 @@ const Maker = ({ authService }) => {
       fileName: "Lee",
       fileURL: "",
     },
-    {
+    3: {
       id: "3",
       name: "Lee3",
       theme: "colorful",
@@ -38,7 +38,7 @@ const Maker = ({ authService }) => {
       fileName: "Lee",
       fileURL: null,
     },
-  ]);
+  });
   const history = useHistory();
   const onLogout = () => {
     authService.logout();
@@ -52,15 +52,28 @@ const Maker = ({ authService }) => {
     });
   });
 
-  const addCard = (card) => {
-    const updated = [...cards, card];
+  const createOrUpdateCard = (card) => {
+    const updated = { ...cards };
+    updated[card.id] = card;
+    //기존의 아이디가 오브젝트에 없었으면 새로운것이 추가댐
+    setCards(updated);
+  };
+
+  const deleteCard = (card) => {
+    const updated = { ...cards };
+    delete updated[card.id];
     setCards(updated);
   };
   return (
     <section className={styles.maker}>
       <Header onLogout={onLogout} />
       <div className={styles.container}>
-        <Editor cards={cards} addCard={addCard} />
+        <Editor
+          cards={cards}
+          addCard={createOrUpdateCard}
+          updateCard={createOrUpdateCard}
+          deleteCard={deleteCard}
+        />
         <Preview cards={cards} />
       </div>
       <Footer />
