@@ -6,47 +6,29 @@ import Header from "../header/header";
 import Preview from "../preview/preview";
 import styles from "./maker.module.css";
 
-const Maker = ({ authService, FileInput }) => {
-  const [cards, setCards] = useState({
-    1: {
-      id: "1",
-      name: "Lee",
-      theme: "light",
-      title: "Software Engineer",
-      email: "tmdgus7048@naver.com",
-      message: "go for it",
-      fileName: "Lee",
-      fileURL: null,
-    },
-    2: {
-      id: "2",
-      name: "Lee2",
-      theme: "dark",
-      title: "Software Engineer",
-      email: "tmdgus7048@naver.com",
-      message: "go for it",
-      fileName: "Lee",
-      fileURL: "",
-    },
-    3: {
-      id: "3",
-      name: "Lee3",
-      theme: "colorful",
-      title: "Software Engineer",
-      email: "tmdgus7048@naver.com",
-      message: "go for it",
-      fileName: "Lee",
-      fileURL: null,
-    },
-  });
+const Maker = ({ authService, FileInput, cardRepository }) => {
   const history = useHistory();
+  const historyState = history?.location?.state;
+  const [cards, setCards] = useState({});
+  const [userId, setUserId] = useState(historyState && historyState.id);
   const onLogout = () => {
     authService.logout();
   };
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+    const stopSync = cardRepository.syncCards(userId, (cards) => {
+      setCards(cards);
+    });
+    return () => stopSync();
+  }, [userId]);
 
   useEffect(() => {
     authService.onAuthChange((user) => {
-      if (!user) {
+      if (user) {
+        setUserId(user.uid);
+      } else {
         history.push("/");
       }
     });
@@ -57,12 +39,14 @@ const Maker = ({ authService, FileInput }) => {
     updated[card.id] = card;
     //기존의 아이디가 오브젝트에 없었으면 새로운것이 추가댐
     setCards(updated);
+    cardRepository.saveCard(userId, card);
   };
 
   const deleteCard = (card) => {
     const updated = { ...cards };
     delete updated[card.id];
     setCards(updated);
+    cardRepository.removeCard(userId, card);
   };
   return (
     <section className={styles.maker}>
